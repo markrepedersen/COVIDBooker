@@ -1,6 +1,31 @@
 * Abstract
-Given a very small amount of information about a person (e.g. a unique photo), it is interesting to be able to garner as much of their online presence as possible.
-* Usage
+A way for me (and friends who also frequent the same gym) to book my workouts on a VERY GREAT pre-90s website that doesn't support renewable appointments.
+
+* Configuration
+A configuration file "*config.json*" is needed in order to schedule the days you want to book on.
+
+Here's an example configuration file:
+
+#+begin_src json
+{
+    "username": "username",
+    "password": "password",
+    "dates": ["2016-04-26T18:09:16Z", "2016-04-26T18:09:16Z", "2016-04-26T18:09:16Z"]
+}
+#+end_src
+
+* Docker
+The preferable way is to use Docker:
+
 #+begin_src bash
-npm run scraper -- -q <query>
+docker build -t chrome .
+docker run chrome
+#+end_src
+
+* Usage
+If running this locally, do the following:
+
+#+begin_src bash
+npm install
+npm run book
 #+end_src
