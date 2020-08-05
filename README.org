@@ -26,9 +26,28 @@ And here's an example configuration file:
 
 #+begin_src json
 {
-    "username": "username",
-    "password": "password",
-    "dates": ["2016-04-26T18:09:16Z", "2016-04-26T18:09:16Z", "2016-04-26T18:09:16Z"]
+    "username": "uname",
+    "password": "pw",
+    "date": {
+        "dates": [
+            {
+                "day": "Monday",
+                "time": 18
+            },
+            {
+                "day": "Wednesday",
+                "time": 18
+            },
+            {
+                "day": "Friday",
+                "time": 18
+            },
+            {
+                "day": "Sunday",
+                "time": 18
+            }
+        ]
+    }
 }
 #+end_src
 
