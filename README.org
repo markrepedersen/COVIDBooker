@@ -15,7 +15,7 @@ Now add the following to the crontab that opens in the editor.
 
 #+begin_src bash
 # min  hour  day_of_month  month  day_of_week  command
-0  1  *  *  *
+0  1  *  *  * docker run chrome >> ~/cron.txt 2>&1
 #+end_src
 
 You'll also need to wake your computer up if it's asleep as the time cron runs:
