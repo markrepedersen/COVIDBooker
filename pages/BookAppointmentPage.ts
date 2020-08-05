@@ -2,7 +2,6 @@ import {
   Page,
   elementIsVisible,
   findBy,
-  log,
   validate,
   WaitCondition,
   Button,
@@ -12,10 +11,9 @@ import {
 import {
   UnavailableTimeError,
   DuplicateBookingError,
-  UnavailableDateError,
+  InsufficientCreditsAvailableError,
 } from "./booking_error";
 
-@log
 @validate
 export class BookAppointmentPage extends Page {
   @findBy(`//*[@id="totalBookings"]`)
@@ -39,8 +37,14 @@ export class BookAppointmentPage extends Page {
   }
 
   public async selectDate(month: string, day: string) {
+    let date = await this.findDate(month, day);
+
     await this.dateSelector.click();
-    await (await this.findDate(month, day)).click();
+    await date.click();
+    await this.browser.waitForElementToHaveAttributes(
+      date.selector,
+      "selected"
+    );
   }
 
   private async findTime(time: string): Promise<TextInput> {
@@ -50,23 +54,36 @@ export class BookAppointmentPage extends Page {
     );
   }
 
-  public async selectTime(time: string) {
+  public async selectTime(date: Date) {
+    let time = date.toLocaleTimeString("en-us", {
+      hour: "numeric",
+      minute: "2-digit",
+    });
     try {
       let input: TextInput = await this.findTime(time);
       let value: string = await input.getElementAttribute("value");
 
       if (value.includes("Insufficient")) {
-        throw new UnavailableTimeError(time);
+        throw new InsufficientCreditsAvailableError(date);
       } else if (value.includes("Cancel Booked")) {
-        throw new DuplicateBookingError();
+        throw new DuplicateBookingError(date);
       } else {
         await input.click();
+        await this.browser.waitFor(
+          async (): Promise<boolean> => {
+            let value = await input.getElementAttribute("value");
+            return value.includes("Cancel Booked");
+          }
+        );
       }
     } catch (e) {
-      if (e instanceof DuplicateBookingError) {
+      if (
+        e instanceof DuplicateBookingError ||
+        e instanceof InsufficientCreditsAvailableError
+      ) {
         throw e;
       } else {
-        throw new UnavailableTimeError(time);
+        throw new UnavailableTimeError(date);
       }
     }
   }
@@ -74,24 +91,13 @@ export class BookAppointmentPage extends Page {
   /***
    * Book a workout from a given date.
    ***/
-  public async bookWorkout(date: Date) {
-    let day = date.getDate().toString();
-    let month = date.toLocaleString("en-us", {month: "long"});
-    let time = date.toLocaleTimeString("en-us", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  public async bookWorkout(dates: Array<Date>) {
+    for (let date of dates) {
+      let day = date.getDate().toString();
+      let month = date.toLocaleString("en-us", {month: "long"});
 
-    try {
-      await this.selectDate(month, day);
-    } catch (e) {
-      throw new UnavailableDateError(date);
-    }
-
-    try {
-      await this.selectTime(time);
-    } catch (e) {
-      throw new UnavailableTimeError(time);
+      await this.selectDate(month, day).catch((e) => console.log(e));
+      await this.selectTime(date).catch((e) => console.log(e));
     }
   }
 }

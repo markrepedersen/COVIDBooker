@@ -1,42 +1,37 @@
 import {Chrome} from "automark";
 import {HomePage} from "./pages";
 import {readFileSync, existsSync} from "fs";
+import {assert} from "console";
 
-type Settings = {
+export type WeekDay = {
+  day: string;
+  time: number;
+};
+
+type Config = {
   username: string;
   password: string;
-  dates: Array<Date>;
+  date: {
+    recurring: boolean;
+    dates: Array<WeekDay>;
+  };
 };
 
 export class Runner {
   public chrome!: Chrome;
-  public settings!: Settings;
+  public config!: Config;
 
   public constructor() {
     this.chrome = new Chrome({headless: true});
-    this.settings = this.loadSettings();
+    this.config = this.loadConfig();
   }
 
-  private reviver(_: any, value: any) {
-    let dateFormat = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
-
-    if (Array.isArray(value)) {
-      return value.map((date: string) => {
-        if (dateFormat.test(date)) {
-          return new Date(date);
-        }
-      });
-    }
-
-    return value;
-  }
-
-  private loadSettings(): Settings {
-    let path: string = `${__dirname}/credentials.json`;
+  private loadConfig(): Config {
+    let path: string = `${__dirname}/config.json`;
     if (!existsSync(path)) {
-      throw new Error("No 'credentials.json' file given.");
+      throw new Error("No 'config.json' file given.");
     }
-    return JSON.parse(readFileSync(path, "utf8"), this.reviver);
+    return JSON.parse(readFileSync(path, "utf8"));
   }
 
   private async goToHomePage(): Promise<HomePage> {
@@ -44,19 +39,56 @@ export class Runner {
     return await this.chrome.waitUntilPageHasLoaded(HomePage);
   }
 
+  /**
+   * Converts the days of the week specified in the config into Date objects.
+   **/
+  private getDates(days: Array<WeekDay>): Array<Date> {
+    let dates = [];
+    let curr = new Date();
+    let first = curr.getDate();
+
+    for (let i = 0; i < 7; i++) {
+      let next = new Date(curr.getTime());
+      next.setDate(first + i);
+      let dayOfWeek = next.toLocaleDateString("en-us", {weekday: "long"});
+      let weekDay = days.find((weekday: WeekDay) => weekday.day == dayOfWeek);
+
+      if (weekDay) {
+        next.setHours(weekDay.time, 0);
+        dates.push(next);
+      }
+    }
+
+    assert(
+      dates.length > 0,
+      "There was a problem parsing the dates. Please verify correct usage."
+    );
+
+    return dates;
+  }
+
+  /**
+   * Books the workout(s) for the specified date(s).
+   **/
   public async book() {
+    let dates = this.getDates(this.config.date.dates);
+
+    console.log("Scheduling appointments for the following days: ");
+    dates.forEach((d) =>
+      console.log(d.toLocaleString("en-us", {weekday: "long"}))
+    );
+
     let homePage = await this.goToHomePage();
     let loginPage = await homePage.goToLogin();
     let schedulePage = await loginPage.login(
-      this.settings.username,
-      this.settings.password
+      this.config.username,
+      this.config.password
     );
     let bookAppointmentPage = await schedulePage.goToBookWorkoutPage();
-    let testDate = this.settings.dates[0];
 
-    console.log(testDate);
+    await bookAppointmentPage.bookWorkout(dates);
 
-    await bookAppointmentPage.bookWorkout(testDate);
+    this.chrome.quit();
   }
 }
 

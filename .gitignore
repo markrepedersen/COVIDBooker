@@ -1,5 +1,5 @@
 node_modules/
 dist/
-credentials.json
+config.json
 images/
 .DS_Store

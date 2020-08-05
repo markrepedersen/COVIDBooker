@@ -2,9 +2,27 @@
 A way for me (and friends who also frequent the same gym) to book my workouts on a VERY GREAT pre-90s website that doesn't support renewable appointments.
 
 * Configuration
-A configuration file "*config.json*" is needed in order to schedule the days you want to book on.
+- A configuration file "*config.json*" is needed in order to schedule the days you want to book on.
+- If you want to run this every day, you can use cron to run the container every day.
 
-Here's an example configuration file:
+Here's an example for setting up a cron job (*On MacOS*) to run the Docker container every day at 1 AM:
+
+#+begin_src bash
+crontab -e 
+#+end_src
+
+Now add the following to the crontab that opens in the editor.
+
+#+begin_src bash
+# min  hour  day_of_month  month  day_of_week  command
+0  1  *  *  *
+#+end_src
+
+You'll also need to wake your computer up if it's asleep as the time cron runs:
+- For MacOS: You can go to Energy Saver and set up a schedule to wake the computer up at X time.
+- On Linux: You can use something like rtcwake.
+
+And here's an example configuration file:
 
 #+begin_src json
 {

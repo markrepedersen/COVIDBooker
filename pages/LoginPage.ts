@@ -2,7 +2,6 @@ import {
   Page,
   elementIsVisible,
   findBy,
-  log,
   validate,
   WaitCondition,
   Button,
@@ -10,7 +9,6 @@ import {
 } from "automark";
 import {SchedulePage} from "./SchedulePage";
 
-@log
 @validate
 export class LoginPage extends Page {
   @findBy("#txtUsername")

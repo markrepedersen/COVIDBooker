@@ -2,14 +2,12 @@ import {
   Page,
   elementIsVisible,
   findBy,
-  log,
   validate,
   WaitCondition,
   Button,
 } from "automark";
 import {LoginPage} from "./LoginPage";
 
-@log
 @validate
 export class HomePage extends Page {
   public static LINK: string = "https://www.trevorlindenfitness.com/";
