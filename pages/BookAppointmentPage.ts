@@ -12,6 +12,7 @@ import {
   UnavailableTimeError,
   DuplicateBookingError,
   InsufficientCreditsAvailableError,
+  formatDate,
 } from "./booking_error";
 
 @validate
@@ -59,6 +60,7 @@ export class BookAppointmentPage extends Page {
       hour: "numeric",
       minute: "2-digit",
     });
+    let dateString = formatDate(date);
     try {
       let input: TextInput = await this.findTime(time);
       let value: string = await input.getElementAttribute("value");
@@ -69,9 +71,11 @@ export class BookAppointmentPage extends Page {
         throw new DuplicateBookingError(date);
       } else {
         await input.click();
+        console.log(`Successfully booked appointment for '${dateString}'.`);
         await this.browser.waitFor(
           async (): Promise<boolean> => {
-            let value = await input.getElementAttribute("value");
+            let booking = await this.findTime(time);
+            let value = await booking.getElementAttribute("value");
             return value.includes("Cancel Booked");
           }
         );

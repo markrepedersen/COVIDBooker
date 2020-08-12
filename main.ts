@@ -22,7 +22,7 @@ export class Runner {
   public config!: Config;
 
   public constructor() {
-    this.chrome = new Chrome({headless: true});
+    this.chrome = new Chrome({headless: false});
     this.config = this.loadConfig();
   }
 
